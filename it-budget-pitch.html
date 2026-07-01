@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Claude Spend — Context for IT</title>
+<style>
+  :root{
+    --bg:#0e0f11; --panel:#16181d; --panel2:#1c1f26; --line:#2a2e37;
+    --ink:#e7e9ee; --mut:#9aa0a6; --dim:#6b7178;
+    --purple:#8b7bf0; --blue:#3a8be0; --teal:#1fb083; --amber:#e2a52b;
+    --accentbg:#241d3d; --accentink:#c9bdf5;
+    --voice:"Iowan Old Style",Georgia,serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
+    line-height:1.55;font-size:15px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:900px;margin:0 auto;padding:32px 22px 64px}
+  h1{font-size:24px;font-weight:600;margin:0 0 4px;letter-spacing:-.01em}
+  .sub{color:var(--mut);font-size:14px;margin:0 0 26px}
+  .section-label{font-size:11.5px;color:var(--dim);letter-spacing:.06em;text-transform:uppercase;margin:0 0 8px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:1rem 1.1rem;margin-bottom:1.5rem}
+  .grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:1.5rem}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius,10px);padding:1rem}
+  .card .lbl{font-size:12.5px;color:var(--mut);margin-bottom:4px}
+  .card .val{font-family:var(--voice);font-size:24px;font-weight:600}
+  .card.accent{background:var(--accentbg);border-color:#3a2f66}
+  .card.accent .lbl,.card.accent .val{color:var(--accentink)}
+  .bartrack{position:relative;height:30px;background:var(--panel2);border-radius:6px;overflow:visible;margin-top:14px}
+  .barfill{position:absolute;left:0;top:0;height:100%;border-radius:6px 0 0 6px;background:var(--purple);width:0.4%;min-width:3px}
+  .barcallout{margin-top:8px;font-size:12px;color:var(--accentink);white-space:nowrap}
+  .heroratio{text-align:right;margin-top:8px;font-family:var(--voice);font-size:22px;font-weight:600}
+  .chartwrap{position:relative;width:100%;height:230px;margin-bottom:.5rem}
+  .foot{font-size:12.5px;color:var(--dim);margin-bottom:1.5rem}
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .askcard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:1rem}
+  .askcard.accent{background:var(--accentbg);border-color:#3a2f66}
+  .askcard .h{font-size:12px;color:var(--mut);margin-bottom:6px}
+  .askcard.accent .h{color:var(--accentink)}
+  .askcard .b{font-size:14px;color:var(--ink)}
+  .askcard.accent .b{color:var(--accentink)}
+  .note{font-size:12px;color:var(--dim);margin-top:22px;border-top:1px solid var(--line);padding-top:12px}
+  .disclaim{font-size:11.5px;color:var(--dim);margin-top:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Claude spend — context for IT</h1>
+  <p class="sub">Why one $500 month against a $250 cap isn't a budget problem — five panels, in order.</p>
+
+  <div class="section-label">1 — Size it against the deal</div>
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--mut);margin-bottom:6px">
+      <span>Spend: $500</span><span>Deal: $5,000,000</span>
+    </div>
+    <div class="bartrack">
+      <div class="barfill"></div>
+    </div>
+    <div class="barcallout">↑ that sliver is the $500 — barely visible against $5M</div>
+    <div class="heroratio">0.01% of deal value</div>
+  </div>
+
+  <div class="section-label">2 — It's a one-off, not a trend</div>
+  <div class="chartwrap"><canvas id="trendChart"></canvas></div>
+  <div class="foot">5 of 6 months at or under cap — the spike lines up with the close, not a runaway pattern.</div>
+
+  <div class="section-label">3 — The team absorbs it</div>
+  <div class="chartwrap"><canvas id="teamChart"></canvas></div>
+  <div class="foot">Same month, whole team: average is $65 — dormant and light users offset the one spike.</div>
+
+  <div class="section-label">4 — Below normal cost of sale</div>
+  <div class="chartwrap" style="height:200px"><canvas id="benchChart"></canvas></div>
+  <div class="foot">Directional benchmarks, not a cited study — but the order of magnitude holds: this is a rounding error next to normal cost-of-sale spend.</div>
+
+  <div class="section-label">5 — The actual ask</div>
+  <div class="twocol">
+    <div class="askcard">
+      <div class="h">Current policy</div>
+      <div class="b">Flat $250/mo cap. Any month over gets flagged — no context on why.</div>
+    </div>
+    <div class="askcard accent">
+      <div class="h">Proposed policy</div>
+      <div class="b">Cap stays — but a month tied to closed or in-flight deal value isn't flagged the same way as unexplained overage.</div>
+    </div>
+  </div>
+
+  <div class="note">
+    Real anchors: $250 cap, $500 spike, $5M deal. Everything else (other months, teammates, benchmark %s) is illustrative — swap in real numbers before presenting.<br/>
+    <span class="disclaim">Built from the Claude Seat Budget Model — see claude-seat-budget-model.html in this repo for the full 50-seat allocation.</span>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(function(){
+  var muted = '#898781', grid = 'rgba(137,135,129,0.18)';
+
+  new Chart(document.getElementById('trendChart'), {
+    data: {
+      labels: ['Feb','Mar','Apr','May','Jun','Jul'],
+      datasets: [
+        { type:'bar', label:'Spend', data:[190,210,230,180,500,205],
+          backgroundColor: function(c){ return c.dataIndex===4 ? '#8b7bf0' : '#3a8be0'; },
+          borderRadius:4, maxBarThickness:36, order:2 },
+        { type:'line', label:'Cap', data:[250,250,250,250,250,250],
+          borderColor:'#e2a52b', borderWidth:2, borderDash:[6,4], pointRadius:0, tension:0, order:1 }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{ label:function(c){
+          if(c.dataset.label==='Cap') return 'Cap: $250';
+          return c.label+': $'+c.parsed.y+(c.dataIndex===4?' · $5M deal closed':'');
+        }}}},
+      scales:{
+        x:{ ticks:{color:muted}, grid:{display:false} },
+        y:{ ticks:{color:muted, callback:function(v){return '$'+v;}}, grid:{color:grid}, suggestedMin:0, suggestedMax:560 }
+      }
+    }
+  });
+
+  new Chart(document.getElementById('teamChart'), {
+    data: {
+      labels: ['You','P2','P3','P4','P5','P6','P7','P8','P9','P10'],
+      datasets: [
+        { type:'bar', label:'Spend', data:[500,45,35,28,15,12,8,5,2,0],
+          backgroundColor: function(c){ return c.dataIndex===0 ? '#8b7bf0' : '#1fb083'; },
+          borderRadius:4, maxBarThickness:34, order:2 },
+        { type:'line', label:'Team average', data:new Array(10).fill(65),
+          borderColor:'#e7e9ee', borderWidth:3, borderDash:[6,4], pointRadius:0, tension:0, order:1 }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{ label:function(c){
+          if(c.dataset.label==='Team average') return 'Team average: $65';
+          return c.label+': $'+c.parsed.y;
+        }}}},
+      scales:{
+        x:{ ticks:{color:muted}, grid:{display:false} },
+        y:{ ticks:{color:muted, callback:function(v){return '$'+v;}}, grid:{color:grid}, suggestedMin:0 }
+      }
+    }
+  });
+
+  new Chart(document.getElementById('benchChart'), {
+    type:'bar',
+    data: {
+      labels: ['This AI spend','Sales software','Travel & entertainment','Total cost of sale'],
+      datasets: [{ data:[0.01,1.5,3,10],
+        backgroundColor:['#8b7bf0','#3a8be0','#3a8be0','#3a8be0'],
+        borderRadius:4, maxBarThickness:34 }]
+    },
+    options: {
+      indexAxis:'y',
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{ label:function(c){ return c.parsed.x+'% of deal value'; } } } },
+      scales:{
+        x:{ ticks:{color:muted, callback:function(v){return v+'%';}}, grid:{color:grid} },
+        y:{ ticks:{color:muted}, grid:{display:false} }
+      }
+    }
+  });
+})();
+</script>
+</body>
+</html>
