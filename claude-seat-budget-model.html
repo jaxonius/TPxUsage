@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Claude Seat Budget Model — TPx</title>
+<style>
+  :root{
+    --bg:#0e0f11; --panel:#16181d; --panel2:#1c1f26; --line:#2a2e37;
+    --ink:#e7e9ee; --mut:#9aa0a6; --dim:#6b7178;
+    --teal:#1fb083; --purple:#8b7bf0; --blue:#3a8be0; --amber:#e2a52b; --red:#e2514f; --gray:#6b7178;
+    --voice:"Iowan Old Style",Georgia,serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
+    line-height:1.55;font-size:15px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1040px;margin:0 auto;padding:32px 22px 64px}
+  h1{font-size:25px;font-weight:600;margin:0 0 4px;letter-spacing:-.01em}
+  .sub{color:var(--mut);font-size:14px;margin:0 0 24px}
+  h2{font-size:16px;font-weight:600;margin:30px 0 12px;letter-spacing:.02em;color:var(--ink)}
+  h2 .tag{font-size:11px;color:var(--dim);font-weight:500;margin-left:8px;letter-spacing:.04em;text-transform:uppercase}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+  .grid{display:grid;gap:14px}
+  .controls{grid-template-columns:1fr 1fr 1fr}
+  @media(max-width:720px){.controls{grid-template-columns:1fr 1fr}}
+  label{display:block;font-size:12px;color:var(--mut);margin:0 0 5px;letter-spacing:.01em}
+  input[type=number]{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--ink);
+    border-radius:8px;padding:9px 11px;font-size:15px;font-variant-numeric:tabular-nums;outline:none}
+  input[type=number]:focus{border-color:var(--teal)}
+  select{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--ink);
+    border-radius:8px;padding:9px 11px;font-size:14px;outline:none}
+  .seg{display:inline-flex;background:var(--panel2);border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .seg button{background:transparent;border:0;color:var(--mut);padding:8px 16px;font-size:13px;cursor:pointer}
+  .seg button.on{background:var(--teal);color:#04130d;font-weight:600}
+  .presets{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px}
+  .presets button{background:var(--panel2);border:1px solid var(--line);color:var(--ink);
+    border-radius:9px;padding:8px 13px;font-size:13px;cursor:pointer}
+  .presets button:hover{border-color:var(--teal);color:#fff}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:9px 6px;border-bottom:1px solid var(--line)}
+  th{color:var(--dim);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .tierdot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:7px;vertical-align:1px}
+  .tier-in{width:62px !important;text-align:center;padding:7px 4px !important}
+  .tier-sel{width:118px}
+  .hero{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .hero .big{font-family:var(--voice);font-size:46px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+  .hero .pct{font-size:15px;color:var(--mut)}
+  .meter{height:13px;background:var(--panel2);border-radius:7px;overflow:hidden;margin:13px 0 7px}
+  .meter > div{height:100%;width:34%;background:var(--teal);transition:width .18s,background .18s}
+  .foot{display:flex;justify-content:space-between;font-size:12.5px;color:var(--dim)}
+  .warn{font-size:12.5px;color:var(--amber);margin-top:9px;min-height:1px}
+  .two{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;align-items:start}
+  @media(max-width:820px){.two{grid-template-columns:1fr}}
+  .pricetag{font-size:12px;color:var(--dim);margin-top:4px}
+  .cmp{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:14px 16px;margin-top:12px}
+  .cmp.hidden{display:none}
+  .cmp .row{display:flex;justify-content:space-between;padding:4px 0;font-size:13.5px}
+  .cmp .row span:last-child{font-variant-numeric:tabular-nums}
+  .over{color:var(--red)}
+  .slider{width:100%;accent-color:var(--teal)}
+  .prose{color:#cfd3da;font-size:14.5px}
+  .prose p{margin:0 0 11px}
+  .prose strong{color:#fff;font-weight:600}
+  .phaserow{display:grid;grid-template-columns:1fr;gap:10px}
+  .phase{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--teal);border-radius:0 11px 11px 0;padding:13px 16px}
+  .phase h3{margin:0 0 4px;font-size:14.5px;font-weight:600}
+  .phase p{margin:0;font-size:13.5px;color:var(--mut)}
+  .pill{display:inline-block;background:var(--panel2);border:1px solid var(--line);border-radius:20px;
+    padding:2px 10px;font-size:11px;color:var(--mut);margin:0 6px 6px 0}
+  .ref{font-size:12.5px;color:var(--dim);line-height:1.7}
+  a{color:var(--teal);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .note{font-size:12px;color:var(--dim);margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Claude Seat Budget Model</h1>
+  <p class="sub">50 seats · ~$60K/yr · phased, value-weighted allocation. Toggle everything below — numbers update live.</p>
+
+  <h2>The model <span class="tag">toggle to plan</span></h2>
+
+  <div class="presets" id="presets">
+    <button data-p="0" data-s="50" data-l="0" data-d="0">Phase 1 · broad baseline</button>
+    <button data-p="10" data-s="15" data-l="20" data-d="5">Phase 2 · tier &amp; upgrade</button>
+    <button data-p="20" data-s="15" data-l="10" data-d="5">Phase 3 · concentrate</button>
+    <button data-p="50" data-s="0" data-l="0" data-d="0">Ceiling · all premium</button>
+  </div>
+
+  <div class="two">
+    <div class="panel">
+      <div class="grid controls" style="margin-bottom:16px">
+        <div>
+          <label>Annual budget ($)</label>
+          <input type="number" id="budget" value="60000" step="1000" min="0" />
+        </div>
+        <div>
+          <label>Headcount</label>
+          <input type="number" id="head" value="50" step="1" min="0" />
+        </div>
+        <div>
+          <label>Billing</label>
+          <div class="seg" id="billing">
+            <button data-mode="annual" class="on">Annual</button>
+            <button data-mode="monthly">Monthly</button>
+          </div>
+        </div>
+        <div>
+          <label>Premium seat ($/yr)</label>
+          <input type="number" id="premPrice" value="1200" step="60" min="0" />
+          <div class="pricetag" id="premTag">$100/mo billed annually · 5× usage</div>
+        </div>
+        <div>
+          <label>Standard seat ($/yr)</label>
+          <input type="number" id="stdPrice" value="240" step="60" min="0" />
+          <div class="pricetag" id="stdTag">$20/mo billed annually · Pro-level</div>
+        </div>
+        <div>
+          <label>Reclaimed seat ($/yr)</label>
+          <input type="number" id="reclPrice" value="0" step="60" min="0" />
+          <div class="pricetag">pulled / standby</div>
+        </div>
+      </div>
+
+      <table id="tierTable">
+        <thead><tr><th>Tier — who</th><th class="num">People</th><th>Seat type</th><th class="num">$/yr</th></tr></thead>
+        <tbody>
+          <tr data-tier="power">
+            <td><span class="tierdot" style="background:var(--purple)"></span>Power · hits limits, daily</td>
+            <td class="num"><input class="tier-in" type="number" id="cPower" value="10" min="0" step="1"/></td>
+            <td><select class="tier-sel" id="tPower"><option value="prem" selected>Premium</option><option value="std">Standard</option><option value="recl">Reclaimed</option></select></td>
+            <td class="num" id="$Power">$12,000</td>
+          </tr>
+          <tr data-tier="steady">
+            <td><span class="tierdot" style="background:var(--blue)"></span>Steady · weekly-active</td>
+            <td class="num"><input class="tier-in" type="number" id="cSteady" value="15" min="0" step="1"/></td>
+            <td><select class="tier-sel" id="tSteady"><option value="prem">Premium</option><option value="std" selected>Standard</option><option value="recl">Reclaimed</option></select></td>
+            <td class="num" id="$Steady">$3,600</td>
+          </tr>
+          <tr data-tier="light">
+            <td><span class="tierdot" style="background:var(--amber)"></span>Light · sporadic, re-onboard</td>
+            <td class="num"><input class="tier-in" type="number" id="cLight" value="20" min="0" step="1"/></td>
+            <td><select class="tier-sel" id="tLight"><option value="prem">Premium</option><option value="std" selected>Standard</option><option value="recl">Reclaimed</option></select></td>
+            <td class="num" id="$Light">$4,800</td>
+          </tr>
+          <tr data-tier="dormant">
+            <td><span class="tierdot" style="background:var(--gray)"></span>Dormant · &lt;1 session/wk</td>
+            <td class="num"><input class="tier-in" type="number" id="cDormant" value="5" min="0" step="1"/></td>
+            <td><select class="tier-sel" id="tDormant"><option value="prem">Premium</option><option value="std">Standard</option><option value="recl" selected>Reclaimed</option></select></td>
+            <td class="num" id="$Dormant">$0</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note">Default tier split (20/30/30/20) is a planning estimate — replace with real Phase-1 usage data. "Hitting the Standard limit" is the cleanest upgrade signal.</div>
+    </div>
+
+    <div class="panel">
+      <label>Projected annual cost</label>
+      <div class="hero">
+        <span class="big" id="annual">$20,400</span>
+        <span class="pct" id="pct">34% of budget</span>
+      </div>
+      <div class="meter"><div id="bar"></div></div>
+      <div class="foot"><span id="monthly">~$1,700/mo</span><span id="reserve">$39,600 reserve</span></div>
+      <div class="warn" id="warn"></div>
+
+      <table style="margin-top:14px">
+        <tr><td>People covered</td><td class="num" id="covered">50 / 50</td></tr>
+        <tr><td>Paid seats (Prem + Std)</td><td class="num" id="paid">45</td></tr>
+        <tr><td style="border:0">Avg $/paid seat</td><td class="num" id="avg" style="border:0">$453</td></tr>
+      </table>
+
+      <label style="margin-top:14px">Compare vs Enterprise (usage-based)
+        <input type="checkbox" id="cmpToggle" style="float:right;accent-color:var(--teal)"/></label>
+      <div class="cmp hidden" id="cmp">
+        <div style="font-size:12px;color:var(--mut);margin-bottom:8px">Enterprise unbundles tokens: ~$20/seat + metered API usage.</div>
+        <label>Usage per active dev: <strong id="useVal">$200</strong>/mo</label>
+        <input type="range" class="slider" id="useDev" min="50" max="600" step="10" value="200"/>
+        <div class="row"><span>Seat fees (paid × $20/mo)</span><span id="entSeat">$10,800</span></div>
+        <div class="row"><span>Usage (active × $/mo)</span><span id="entUse">$108,000</span></div>
+        <div class="row" style="border-top:1px solid var(--line);margin-top:4px;padding-top:7px"><strong>Enterprise total/yr</strong><strong id="entTotal" class="over">$118,800</strong></div>
+        <div style="font-size:12px;color:var(--dim);margin-top:7px" id="entVerdict"></div>
+      </div>
+    </div>
+  </div>
+
+  <h2>The strategy <span class="tag">why this shape</span></h2>
+  <div class="panel prose">
+    <p><strong>The seat is cheap; the upgrade is the lever.</strong> AI usage is a power law — a handful of power users each return many times their seat cost, while a long tail barely logs in. 50 Standard seats = $12K/yr; 50 Premium = $60K/yr. So the whole budget question is <strong>how many people earn the 5× Premium upgrade</strong> — and Phase 1 answers that with data, not guesswork. <strong>You likely won't spend all $60K, and that's correct</strong> — hold the gap for the 1–2 extreme-tail users (raw usage-based headroom) and expansion.</p>
+    <p style="margin-bottom:4px"><strong>Vehicle: Claude Team</strong> (mix Standard + Premium, 5–150 seats, SSO/SCIM/analytics). <strong>Not Enterprise</strong> — it unbundles tokens, so 50 active devs run ~$150–250/dev/mo in usage <em>on top of</em> seats (toggle the comparison above). Enterprise only wins if per-user spend caps / audit / CMEK are mandatory.</p>
+  </div>
+
+  <div class="phaserow" style="margin-top:14px">
+    <div class="phase"><h3>Phase 1 — Broad baseline · wks 1–6</h3><p>All 50 on Standard (~$12K/yr; ~$48K uncommitted). Usage analytics on, shared CLAUDE.md, managers actively encourage use (7× more daily users). Don't judge before ~wk 4 — ramp is real.</p></div>
+    <div class="phase"><h3>Phase 2 — Tier &amp; upgrade · the reassessment</h3><p>Trigger: someone hits their Standard limit or aggregate pace climbs. Upgrade those users to Premium (+$960/yr each); reclaim dormant seats. Expect 60–70% weekly-active at best.</p></div>
+    <div class="phase"><h3>Phase 3 — Concentrate &amp; guardrail · month 4+</h3><p>Push budget to the proven tail; reserve for outliers beyond Premium. Assign a permanent owner (~10% of one engineer) running a monthly reclaim-and-redeploy cadence; keep dormancy &lt;10%.</p></div>
+  </div>
+
+  <h2>Measure value honestly</h2>
+  <div class="panel prose">
+    <p>Anchor decisions to <strong>weekly-active % + PR throughput + time-saved/DXI moving together</strong>, computed <strong>per tier, not per head</strong>. Distrust vanity metrics (lines-of-code, "% AI-generated", monthly-active) and self-reports — the METR RCT found experienced devs were <strong>19% slower</strong> with AI yet believed they were ~20% faster. Track change-failure-rate alongside speed (2025 DORA: AI lifts throughput but hurts stability without strong tests/CI).</p>
+    <div>
+      <span class="pill">Gates are usage/cost-based, not calendar</span>
+      <span class="pill">~20% drive most consumption + value</span>
+      <span class="pill">Reclaim dormant, don't average</span>
+      <span class="pill">Assign a permanent owner</span>
+    </div>
+  </div>
+
+  <div class="ref" style="margin-top:22px">
+    <strong style="color:var(--mut)">Pricing verified vs claude.com/pricing, 2026-06 · Team high-confidence; Enterprise ~$20 base medium.</strong><br/>
+    Sources: <a href="https://claude.com/pricing">claude.com/pricing</a> ·
+    <a href="https://support.claude.com/en/articles/9797531-what-is-the-enterprise-plan">Enterprise plan</a> ·
+    <a href="https://code.claude.com/docs/en/costs">Claude Code costs/limits</a> ·
+    <a href="https://systemprompt.io/guides/claude-code-organisation-rollout">rollout guide</a> ·
+    <a href="https://www.faros.ai/blog/enterprise-ai-coding-assistant-adoption-scaling-guide">Faros adoption</a> ·
+    <a href="https://getdx.com/research/measuring-ai-code-assistants-and-agents/">DX metrics</a> ·
+    <a href="https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/">METR RCT</a> ·
+    <a href="https://dora.dev/dora-report-2025/">DORA 2025</a>.<br/>
+    <span style="color:var(--dim)">Durable text twin: <em>6. TPx — Claude Seat Rollout Strategy.md</em>. Live seat-tracking actuals → OneDrive, not the vault.</span>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id)};
+  var fmt=function(n){return '$'+Math.round(n).toLocaleString()};
+  var tiers=['Power','Steady','Light','Dormant'];
+  var billing='annual';
+  var PRICES={annual:{prem:1200,std:240},monthly:{prem:1500,std:300}};
+
+  function setBilling(mode){
+    billing=mode;
+    $('premPrice').value=PRICES[mode].prem;
+    $('stdPrice').value=PRICES[mode].std;
+    $('premTag').textContent=(mode==='annual'?'$100/mo billed annually · 5× usage':'$125/mo month-to-month · 5× usage');
+    $('stdTag').textContent=(mode==='annual'?'$20/mo billed annually · Pro-level':'$25/mo month-to-month · Pro-level');
+    Array.prototype.forEach.call($('billing').children,function(b){b.classList.toggle('on',b.dataset.mode===mode)});
+    calc();
+  }
+
+  function unit(type){
+    if(type==='prem')return parseFloat($('premPrice').value)||0;
+    if(type==='std')return parseFloat($('stdPrice').value)||0;
+    return parseFloat($('reclPrice').value)||0;
+  }
+
+  function calc(){
+    var budget=parseFloat($('budget').value)||0;
+    var head=parseInt($('head').value)||0;
+    var annual=0, people=0, paid=0;
+    tiers.forEach(function(t){
+      var c=Math.max(0,parseInt($('c'+t).value)||0);
+      var type=$('t'+t).value;
+      var cost=c*unit(type);
+      annual+=cost; people+=c;
+      if(type!=='recl')paid+=c;
+      $('$'+t).textContent=fmt(cost);
+    });
+    var pct=budget>0?annual/budget*100:0;
+    $('annual').textContent=fmt(annual);
+    $('pct').textContent=Math.round(pct)+'% of budget';
+    $('monthly').textContent='~'+fmt(annual/12)+'/mo';
+    $('reserve').textContent=(annual<=budget?fmt(budget-annual)+' reserve':fmt(annual-budget)+' over');
+    var bar=$('bar');
+    bar.style.width=Math.min(100,pct)+'%';
+    bar.style.background=annual>budget?'var(--red)':(pct>85?'var(--amber)':'var(--teal)');
+    $('covered').textContent=people+' / '+head;
+    $('paid').textContent=paid;
+    $('avg').textContent=paid>0?fmt(annual/paid):'$0';
+    var msgs=[];
+    if(people!==head)msgs.push((people>head?'+':'')+(people-head)+' vs headcount');
+    if(annual>budget)msgs.push('over budget');
+    $('warn').textContent=msgs.length?('⚠ '+msgs.join('  ·  ')):'';
+    // enterprise comparison
+    var perDev=parseInt($('useDev').value)||0;
+    $('useVal').textContent='$'+perDev;
+    var entSeat=paid*20*12, entUse=paid*perDev*12, entTotal=entSeat+entUse;
+    $('entSeat').textContent=fmt(entSeat);
+    $('entUse').textContent=fmt(entUse);
+    $('entTotal').textContent=fmt(entTotal);
+    $('entTotal').className=entTotal>budget?'over':'';
+    var mult=annual>0?(entTotal/annual):0;
+    $('entVerdict').textContent=entTotal>budget
+      ? fmt(entTotal-budget)+' over budget — '+(mult>0?mult.toFixed(1)+'× the Team cost':'')
+      : 'within budget at this usage';
+  }
+
+  // wire up
+  ['budget','head','premPrice','stdPrice','reclPrice','useDev'].forEach(function(id){$(id).addEventListener('input',calc)});
+  $('cmpToggle').addEventListener('change',function(){$('cmp').classList.toggle('hidden',!this.checked)});
+  tiers.forEach(function(t){$('c'+t).addEventListener('input',calc);$('t'+t).addEventListener('change',calc)});
+  Array.prototype.forEach.call($('billing').children,function(b){b.addEventListener('click',function(){setBilling(b.dataset.mode)})});
+  Array.prototype.forEach.call($('presets').children,function(b){
+    b.addEventListener('click',function(){
+      $('cPower').value=b.dataset.p;$('cSteady').value=b.dataset.s;$('cLight').value=b.dataset.l;$('cDormant').value=b.dataset.d;
+      // presets assume default seat types
+      $('tPower').value='prem';$('tSteady').value='std';$('tLight').value='std';$('tDormant').value='recl';
+      if(b.dataset.p==='50'){$('tPower').value='prem';$('tSteady').value='std';$('tLight').value='std';$('tDormant').value='std';}
+      calc();
+    });
+  });
+  calc();
+})();
+</script>
+</body>
+</html>
